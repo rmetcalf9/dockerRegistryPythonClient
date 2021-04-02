@@ -2,6 +2,7 @@ import PythonAPIClientBase
 from .RegistryLoginSession import RegistryLoginSessionBasedOnBasicAuth
 from .RegisteryIterator import RegisteryIterator, genFnCollectSinglePageFunction
 import json
+from .ImageMetadata import ImageMetadata
 
 class RegistryClient(PythonAPIClientBase.APIClientBase):
 
@@ -52,5 +53,29 @@ class RegistryClient(PythonAPIClientBase.APIClientBase):
         retrieveListFromResponseFn=retrieveListFromResponse
       )
     )
+
+  def _getCatlogAndTag(self, qualifiedImageName):
+    try:
+      catalogName, tagName = qualifiedImageName.split(":")
+    except:
+      print("Invalid qualifiedImageName - must be two strings seperated by a colon:", qualifiedImageName)
+      raise Exception("Invalid qualifiedImageName")
+    return catalogName, tagName
+
+
+  def getImageMetadata(self, loginSession, qualifiedImageName):
+    catalogName, tagName = self._getCatlogAndTag(qualifiedImageName)
+    def injectHeadersFn(headers):
+      headers["Accept"] = "application/vnd.docker.distribution.manifest.v2+json"
+
+    result = self.sendGetRequest(
+      url="/v2/" + catalogName + "/manifests/" + tagName,
+      loginSession=loginSession,
+      injectHeadersFn=injectHeadersFn
+    )
+    if result.status_code != 200:
+      self.raiseResponseException(result)
+
+    return ImageMetadata(json.loads(result.content))
 
 # TODO Investigate https://forums.docker.com/t/get-image-digest-from-remote-registry-via-api/9480

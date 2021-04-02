@@ -40,11 +40,27 @@ tags = client.getTagsForCatalogIterator(loginSession=loginSession, catalogName="
 for tag in tags:
   print(tag)
 
-exit()
 ```
 
 catalogName is just the name retrieved by the catalog iterator.
 
+### Get a digest for an image
 
+```
+import dockerRegistryPythonClient
+client = dockerRegistryPythonClient.RegistryClient(baseURL="https://registryurl.com")
+
+username="uu"
+password="pp"
+loginSession = client.getLoginSessionBasedOnBasicAuth(username=username, password=password)
+
+imageMetadata = client.getImageMetadata(loginSession, qualifiedImageName)
+
+print(imageMetadata.getDigest())
+```
+
+### Delete an image TODO
+
+### Delete all images not on a whitelist TODO
 
 

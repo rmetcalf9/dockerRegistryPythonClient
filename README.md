@@ -1,9 +1,21 @@
 # Python API for docker registry v2 API
 
-I needed this as a simple way to deal with API pagination 
-and to give me the ability to delete images from my private registry.
+I created this client because I have a private docker registry based on the docker image
+and a CI process that builds images and places them into the registry.
 
-I only use basic auth username/password on my registrey so I have only implemented that.
+As my system moves through versions images build up on the registry increasing storage costs.
+
+I have created a script which uses the deleteNonWhitelistedTags api of the client to delete
+images that I no longer need on the repository.
+
+
+TODO
+ - find out if garbage collection is run periodically in standard image or I need to run it
+ - find out if there is an API to run the garbage collection process
+ 
+```
+registry garbage-collect /etc/docker/registry/config.yml
+``` 
 
 ## Usage Examples
 
@@ -73,6 +85,20 @@ imageMetadata = client.getImageMetadata(loginSession, qualifiedImageName)
 
 imageMetadata.delete(registryClient=client, loginSession=loginSession)
 
-### Delete all images not on a whitelist TODO
+### Delete all images not on a whitelist 
 
+import dockerRegistryPythonClient
+client = dockerRegistryPythonClient.RegistryClient(baseURL="https://registryurl.com")
+
+username="uu"
+password="pp"
+loginSession = client.getLoginSessionBasedOnBasicAuth(username=username, password=password)
+
+
+whiteList = [
+  "myimage:0.1.19",
+  "myotherimage:0.1.1"
+]
+
+client.deleteNonWhitelistedTags(loginSession=loginSession, whiteList=whiteList)
 

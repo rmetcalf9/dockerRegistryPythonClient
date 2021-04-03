@@ -15,6 +15,9 @@ class ImageMetadata():
   def getJson(self):
     return self._jsonDict
 
+  def getQualifiedName(self):
+    return self._catalogName + ":" + self._tagName
+
   def getDigest(self):
     return self._dockerContentDigest
     ### return self._jsonDict["config"]["digest"]

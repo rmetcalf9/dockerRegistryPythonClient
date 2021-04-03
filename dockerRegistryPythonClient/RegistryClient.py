@@ -107,4 +107,5 @@ class RegistryClient(PythonAPIClientBase.APIClientBase):
           imagesToDelete.append(imageMetadata)
 
     for qualifiedImageToDelete in imagesToDelete:
+      print("Deleting image", qualifiedImageToDelete.getQualifiedName())
       qualifiedImageToDelete.delete(registryClient=self, loginSession=loginSession)

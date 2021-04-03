@@ -94,18 +94,32 @@ class RegistryClient(PythonAPIClientBase.APIClientBase):
     )
 
   def deleteNonWhitelistedTags(self, loginSession, whiteList):
+    numImageTags = 0
+    notInWhitelistERROR = 0
+    notInWhitelistDelete = 0
     imagesToDelete = []
     catalogs = self.getCatalogIterator(loginSession=loginSession)
     for catalog in catalogs:
       tags = self.getTagsForCatalogIterator(loginSession=loginSession, catalogName=catalog)
       for tag in tags:
         qualifiedName = catalog + ":" + tag
+        numImageTags += 1
         if qualifiedName not in whiteList:
           imageMetadata = self.getImageMetadata(loginSession=loginSession, qualifiedImageName=qualifiedName)
           if imageMetadata is None:
             print("Warning - could not find image in registry but it was in the retrieved list", imageMetadata, qualifiedName)
-          imagesToDelete.append(imageMetadata)
+            notInWhitelistERROR += 1
+          else:
+            imagesToDelete.append(imageMetadata)
+            notInWhitelistDelete += 1
 
     for qualifiedImageToDelete in imagesToDelete:
       print("Deleting image", qualifiedImageToDelete.getQualifiedName())
       qualifiedImageToDelete.delete(registryClient=self, loginSession=loginSession)
+
+    # Return stats about delete
+    return {
+      "numImageTags": numImageTags,
+      "notInWhitelistERROR": notInWhitelistERROR,
+      "notInWhitelistDelete": notInWhitelistDelete
+    }

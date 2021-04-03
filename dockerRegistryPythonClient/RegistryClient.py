@@ -69,11 +69,14 @@ class RegistryClient(PythonAPIClientBase.APIClientBase):
     def injectHeadersFn(headers):
       headers["Accept"] = "application/vnd.docker.distribution.manifest.v2+json"
 
+    url = "/v2/" + catalogName + "/manifests/" + tagName
     result = self.sendGetRequest(
-      url="/v2/" + catalogName + "/manifests/" + tagName,
+      url=url,
       loginSession=loginSession,
       injectHeadersFn=injectHeadersFn
     )
+    #print("URL:", url)
+    #print("RESULT:", result.status_code)
     if result.status_code == 404:
       return None
     if result.status_code != 200:
@@ -90,3 +93,18 @@ class RegistryClient(PythonAPIClientBase.APIClientBase):
       dockerContentDigest=result.headers["Docker-Content-Digest"]
     )
 
+  def deleteNonWhitelistedTags(self, loginSession, whiteList):
+    imagesToDelete = []
+    catalogs = self.getCatalogIterator(loginSession=loginSession)
+    for catalog in catalogs:
+      tags = self.getTagsForCatalogIterator(loginSession=loginSession, catalogName=catalog)
+      for tag in tags:
+        qualifiedName = catalog + ":" + tag
+        if qualifiedName not in whiteList:
+          imageMetadata = self.getImageMetadata(loginSession=loginSession, qualifiedImageName=qualifiedName)
+          if imageMetadata is None:
+            print("Warning - could not find image in registry but it was in the retrieved list", imageMetadata, qualifiedName)
+          imagesToDelete.append(imageMetadata)
+
+    for qualifiedImageToDelete in imagesToDelete:
+      qualifiedImageToDelete.delete(registryClient=self, loginSession=loginSession)

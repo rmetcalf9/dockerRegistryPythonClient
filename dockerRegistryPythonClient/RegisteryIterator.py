@@ -44,6 +44,8 @@ class RegisteryIterator:
 
   def collectNextPage(self):
     self.curList = self.collectSinglePageFunction(self.curOffset, self.context)
+    if self.curList is None:
+      return []
     self.curIdx = 0
     self.curOffset += len(self.curList)
 

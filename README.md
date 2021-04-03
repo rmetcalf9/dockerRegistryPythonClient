@@ -59,7 +59,19 @@ imageMetadata = client.getImageMetadata(loginSession, qualifiedImageName)
 print(imageMetadata.getDigest())
 ```
 
-### Delete an image TODO
+### Delete an image
+
+import dockerRegistryPythonClient
+client = dockerRegistryPythonClient.RegistryClient(baseURL="https://registryurl.com")
+
+username="uu"
+password="pp"
+loginSession = client.getLoginSessionBasedOnBasicAuth(username=username, password=password)
+
+qualifiedImageName="imagename:tagname"
+imageMetadata = client.getImageMetadata(loginSession, qualifiedImageName)
+
+imageMetadata.delete(registryClient=client, loginSession=loginSession)
 
 ### Delete all images not on a whitelist TODO
 

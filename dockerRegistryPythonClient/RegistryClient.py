@@ -64,6 +64,7 @@ class RegistryClient(PythonAPIClientBase.APIClientBase):
 
 
   def getImageMetadata(self, loginSession, qualifiedImageName):
+    # Reference https://forums.docker.com/t/get-image-digest-from-remote-registry-via-api/9480
     catalogName, tagName = self._getCatlogAndTag(qualifiedImageName)
     def injectHeadersFn(headers):
       headers["Accept"] = "application/vnd.docker.distribution.manifest.v2+json"
@@ -73,9 +74,19 @@ class RegistryClient(PythonAPIClientBase.APIClientBase):
       loginSession=loginSession,
       injectHeadersFn=injectHeadersFn
     )
+    if result.status_code == 404:
+      return None
     if result.status_code != 200:
       self.raiseResponseException(result)
 
-    return ImageMetadata(json.loads(result.content))
+    if "Docker-Content-Digest" not in result.headers:
+      print(result.headers)
+      raise Exception("Response missing Docker-Content-Digest header")
 
-# TODO Investigate https://forums.docker.com/t/get-image-digest-from-remote-registry-via-api/9480
+    return ImageMetadata(
+      catalogName=catalogName,
+      tagName=tagName,
+      jsonDict=json.loads(result.content),
+      dockerContentDigest=result.headers["Docker-Content-Digest"]
+    )
+
